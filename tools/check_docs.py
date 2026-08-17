@@ -34,14 +34,8 @@ SHARED_PREFIXES = {"DOM", "INV", "GATE", "FR", "NFR", "PAGE", "TEST", "MIG", "DE
 SHARED_IDS = {"SOD-CONFLICT-001"}  # 基座卷定义的通用职责冲突守卫
 
 # 已知且经裁定保留的跨卷标识。键为标识，值为保留理由。
-# 这些项以 WARN 形式每次可见，不阻断；裁定改变时从此处移除。
-ALLOWED_CROSS_VOLUME = {
-    f"STATE-{s}": "02《软件需求规格》2.6 以「最低状态集合」形式提出状态机需求下限，"
-                  "非设计定义；是否改为 02 自有需求标识待 OWNER 裁定"
-    for s in ("ORG-001", "ORG-002", "WSP-001", "WSP-002", "CTR-001", "SVC-001",
-              "ACC-001", "ACC-002", "TAX-001", "TAX-002", "COL-001", "COL-002",
-              "BILL-001")
-}
+# 这些项以 WARN 形式每次可见，不阻断；裁定改变时从此处移除，检查随即转为 ERROR。
+ALLOWED_CROSS_VOLUME: dict[str, str] = {}
 
 # 经裁定保留的编号断档：补号会掩盖迁移轨迹或使标题与稳定标识错位。
 KNOWN_GAPS = {
