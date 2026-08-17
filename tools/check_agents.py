@@ -34,6 +34,11 @@ HEADING_NUM_RE = re.compile(r"^#{2,5}\s+(\d+(?:\.\d+)*)\.?\s")
 STATUSES = {"未开始", "进行中", "已完成", "阻塞"}
 PLACEHOLDERS = {"", "—", "-", "–", "待定", "TBD", "无"}
 
+# AGENTS.md §11：涉及代码的条目，验证命令必须包含测试执行。
+# 按命令内容判定而非新增「类型」列——不改表结构，无需人工分类，无歧义。
+BUILD_CMDS = ("dotnet build", "dotnet publish", "npm run build", "yarn build")
+TEST_CMDS = ("dotnet test", "npm test", "npm run test", "pytest", "vitest")
+
 
 class Report:
     def __init__(self) -> None:
@@ -162,6 +167,12 @@ def check_progress(rep: Report) -> None:
         if cmd in PLACEHOLDERS:
             rep.error("进度", f"「{task}」标记为已完成但无验证命令；"
                             f"没有可执行验证的条目不得标记完成")
+            continue
+        # 构建通过只说明语法正确，不说明行为正确
+        if (any(b in cmd for b in BUILD_CMDS)
+                and not any(t in cmd for t in TEST_CMDS)):
+            rep.error("进度", f"「{task}」的验证命令只有构建没有测试；"
+                            f"构建通过不等于完成，须包含测试执行（AGENTS.md §11）")
 
     rep.stat("任务", "，".join(f"{k} {v}" for k, v in sorted(counts.items())))
 
