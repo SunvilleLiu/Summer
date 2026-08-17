@@ -1,0 +1,4329 @@
+{
+  "schemaVersion": "1.0",
+  "version": "v1.0",
+  "catalogId": "IAM-SEED-V1",
+  "audiences": [
+    "PLATFORM",
+    "PROVIDER",
+    "ENTERPRISE"
+  ],
+  "scopeTypes": [
+    "PLATFORM",
+    "ORGANIZATION",
+    "WORKSPACE",
+    "LEGAL_ENTITY",
+    "BOOK",
+    "OBJECT"
+  ],
+  "organizationCapabilities": [
+    "PROVIDE_SERVICE",
+    "RECEIVE_SERVICE"
+  ],
+  "workspaceParticipantRoles": [
+    "PRIMARY_PROVIDER",
+    "PRIMARY_CLIENT",
+    "PARTNER"
+  ],
+  "workspaceParticipantStatuses": [
+    "INVITED",
+    "ACTIVE",
+    "SUSPENDED",
+    "LEFT"
+  ],
+  "workspaceMembershipStatuses": [
+    "INVITED",
+    "ACTIVE",
+    "SUSPENDED",
+    "LEFT"
+  ],
+  "connectorAuthorizationModel": {
+    "chain": [
+      "connector_provider",
+      "connector_adapter",
+      "platform_credential(optional)",
+      "organization_connector_authorization",
+      "workspace_connector_grant",
+      "connector_request",
+      "connector_attempt",
+      "connector_event",
+      "connector_usage"
+    ],
+    "authorizationOwner": "实际外部账号、LegalEntity或Account的Organization",
+    "grantRule": "workspace_connector_grant仅授予指定Workspace和participant精确用途，不转移authorization所有权。",
+    "freezeRule": "connector_request冻结authorization_version与grant_version；Workspace结束时撤销grant但保留authorization及历史证据。"
+  },
+  "scopeRules": [
+    {
+      "scopeType": "PLATFORM",
+      "resolver": "PLATFORM_RESOURCE_ONLY",
+      "rule": "仅覆盖平台元数据与平台资源，不得传播到Organization或Workspace业务正文。"
+    },
+    {
+      "scopeType": "ORGANIZATION",
+      "resolver": "CURRENT_ORGANIZATION",
+      "rule": "覆盖当前Organization私有资源；传播到Workspace还须permission允许且当前成员拥有ACTIVE workspace_membership。"
+    },
+    {
+      "scopeType": "WORKSPACE",
+      "resolver": "CURRENT_WORKSPACE",
+      "rule": "仅覆盖当前Workspace及其ACTIVE participant、membership和subject。"
+    },
+    {
+      "scopeType": "LEGAL_ENTITY",
+      "resolver": "WORKSPACE_SUBJECT_LEGAL_ENTITY",
+      "rule": "具体LegalEntity必须由当前Organization有效claim并位于当前WorkspaceSubject。"
+    },
+    {
+      "scopeType": "BOOK",
+      "resolver": "WORKSPACE_BOOK_ASSIGNMENT",
+      "rule": "具体AccountingBook必须有有效WorkspaceBookAssignment并满足成员的BOOK_ASSIGNMENT或企业代表关系。"
+    },
+    {
+      "scopeType": "OBJECT",
+      "resolver": "EXACT_OBJECT_RELATION",
+      "rule": "只覆盖精确object_type/object_id及权限明示允许的子资源。"
+    }
+  ],
+  "permissions": [
+    {
+      "code": "platform.identity.manage",
+      "name": "平台账号与会话管理",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.organization.view",
+      "name": "查看平台Organization安全摘要",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L2"
+    },
+    {
+      "code": "platform.organization.capability_approve",
+      "name": "决定Organization能力状态",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "organization_capability_activation",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.organization.verification_review",
+      "name": "复核并决定Organization核验",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "organization_verification",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.organization.status_manage",
+      "name": "受控暂停或恢复Organization",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "organization_status_change",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.organization.close",
+      "name": "受控关闭Organization",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "organization_closure",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.legal_entity.claim_review",
+      "name": "复核冲突LegalEntity认领",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "enterprise_legal_entity_claim",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.role_assignment.manage",
+      "name": "平台角色分配管理",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "platform_role_assignment",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.view",
+      "name": "查看平台商业计费",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "platform.billing.plan_draft",
+      "name": "草拟平台套餐价格",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "platform.billing.plan_publish",
+      "name": "批准并发布套餐价格",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "billing_plan_publish",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.subscription_request",
+      "name": "申请平台强制订阅开通终止或恢复",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "billing_subscription_change",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.subscription_execute",
+      "name": "执行获准订阅及变更",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "billing_subscription_change",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.usage_ingest",
+      "name": "摄入受控计量事实",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L2"
+    },
+    {
+      "code": "platform.billing.usage_correct",
+      "name": "更正计量事实",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "billing_usage_correction",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.bill_finalize",
+      "name": "定稿平台账单",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "billing_bill_finalization",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.payment_execute",
+      "name": "执行或确认平台收款",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "billing_manual_payment",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.refund_approve",
+      "name": "批准平台退款",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "billing_refund",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.refund_execute",
+      "name": "执行平台退款",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "billing_refund",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.invoice_issue",
+      "name": "受控开具或查单平台发票",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "billing_invoice_issue",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.invoice_correct",
+      "name": "更正平台发票",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "billing_invoice_correction",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.dispute_resolve",
+      "name": "处理并关闭计费争议",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "billing_dispute_resolution",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.delinquency_execute",
+      "name": "执行欠费例外与恢复",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "billing_delinquency_exception",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.billing.reconciliation_execute",
+      "name": "执行平台商业对账",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.connector.provider_manage",
+      "name": "平台连接器供应商和适配器管理",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "platform.connector.credential_manage",
+      "name": "平台连接器凭证管理",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.connector.callback_operate",
+      "name": "平台回调隔离与受控重放",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.operations.manage",
+      "name": "平台任务与Outbox处置",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "platform.support.request",
+      "name": "申请平台支持访问",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L2",
+      "approvalTemplate": "support_access"
+    },
+    {
+      "code": "platform.support.execute",
+      "name": "在获批支持grant内执行支持动作",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "SUPPORT_GRANT",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.support.issue",
+      "name": "依据获批任务签发或拒绝支持grant",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "support_access",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.support.revoke",
+      "name": "撤销或终止平台支持访问",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "SUPPORT_GRANT",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "support.access.revoke",
+      "name": "目标责任方撤销支持访问",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "SUPPORT_TARGET_OWNER",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "approval.task.decide",
+      "name": "处理当前派生审批任务",
+      "audiences": [
+        "PLATFORM",
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "APPROVAL_TASK_ASSIGNEE",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "platform.audit.view",
+      "name": "查看平台审计",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "platform.audit.export",
+      "name": "导出平台审计",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "layer": "PLATFORM",
+      "allowedScopes": [
+        "PLATFORM"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "sensitive_export",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "organization.profile.view",
+      "name": "查看本Organization资料",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION"
+      ],
+      "riskLevel": "LOW",
+      "sensitivityLevel": "L2"
+    },
+    {
+      "code": "organization.profile.manage",
+      "name": "维护本Organization资料",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "organization.member.view",
+      "name": "查看Organization成员",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L2"
+    },
+    {
+      "code": "organization.member.manage",
+      "name": "管理Organization成员邀请接受暂停离开与交接",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "organization.legal_entity.claim",
+      "name": "提交或维护LegalEntity认领",
+      "audiences": [
+        "ENTERPRISE"
+      ],
+      "layer": "LEGAL_ENTITY",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "enterprise_legal_entity_claim",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "authorization.role.view",
+      "name": "查看角色权限目录",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "WORKSPACE"
+      ],
+      "riskLevel": "LOW",
+      "sensitivityLevel": "L1"
+    },
+    {
+      "code": "authorization.role.manage",
+      "name": "发布自定义角色",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "authorization.role_assignment.manage",
+      "name": "授予和撤销角色",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "workspace.workspace.view",
+      "name": "查看本人有权Workspace",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "WORKSPACE"
+      ],
+      "riskLevel": "LOW",
+      "sensitivityLevel": "L2",
+      "relationshipRequired": "WORKSPACE_PARTICIPANT"
+    },
+    {
+      "code": "workspace.workspace.create",
+      "name": "创建Workspace草稿",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "ORGANIZATION"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L2"
+    },
+    {
+      "code": "workspace.workspace.manage",
+      "name": "维护Workspace配置",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L2",
+      "relationshipRequired": "WORKSPACE_PARTICIPANT"
+    },
+    {
+      "code": "workspace.workspace.activate",
+      "name": "确认激活Workspace",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "workspace_activation",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "workspace.workspace.close",
+      "name": "关闭或迁出Workspace",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "workspace_participant_change",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "workspace.participant.manage",
+      "name": "管理Workspace参与方邀请接受暂停离开与重新加入",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "workspace_participant_change"
+    },
+    {
+      "code": "workspace.membership.manage",
+      "name": "管理Workspace成员资格邀请接受暂停恢复离开与撤销",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "workspace.subject.view",
+      "name": "查看Workspace受控主体",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "LEGAL_ENTITY",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "WORKSPACE_PARTICIPANT"
+    },
+    {
+      "code": "workspace.subject.manage",
+      "name": "变更Workspace受控主体",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "LEGAL_ENTITY",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "workspace_subject_change",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "workspace.book_assignment.manage",
+      "name": "管理Workspace账套服务关系",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "WORKSPACE",
+        "BOOK"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "workspace_subject_change"
+    },
+    {
+      "code": "customer.lead.manage",
+      "name": "管理服务机构私有线索",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L2",
+      "relationshipRequired": "OWNED_OR_ASSIGNED"
+    },
+    {
+      "code": "customer.opportunity.manage",
+      "name": "管理商机报价和转化",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L2",
+      "relationshipRequired": "OWNED_OR_ASSIGNED"
+    },
+    {
+      "code": "contract.contract.view",
+      "name": "查看合同授权投影",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "WORKSPACE_PARTICIPANT"
+    },
+    {
+      "code": "contract.contract.manage",
+      "name": "编辑合同草稿和版本",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "contract.contract.submit",
+      "name": "提交合同审批",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "contract_approval"
+    },
+    {
+      "code": "contract.contract.sign",
+      "name": "签署合同",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "LEGAL_ENTITY_REPRESENTATIVE",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "finance.receipt.manage",
+      "name": "回款确认与核销",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "finance.refund.execute",
+      "name": "执行退款",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "finance_refund",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "finance.enterprise_summary.view",
+      "name": "企业查看回款开票安全摘要",
+      "audiences": [
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY"
+      ],
+      "riskLevel": "LOW",
+      "sensitivityLevel": "L2",
+      "relationshipRequired": "LEGAL_ENTITY_REPRESENTATIVE"
+    },
+    {
+      "code": "service.work_order.manage",
+      "name": "服务工单派发与处理",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "ASSIGNED"
+    },
+    {
+      "code": "service.lifecycle.execute",
+      "name": "执行服务生命周期变更",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "service_lifecycle_change"
+    },
+    {
+      "code": "accounting.book.activate",
+      "name": "激活账套",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "WORKSPACE",
+        "BOOK"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "approvalTemplate": "book_activation"
+    },
+    {
+      "code": "accounting.book.view",
+      "name": "查看获授权账套",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "BOOK_ASSIGNMENT_OR_REPRESENTATIVE"
+    },
+    {
+      "code": "accounting.voucher.prepare",
+      "name": "编制凭证",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "BOOK_ASSIGNMENT"
+    },
+    {
+      "code": "accounting.voucher.review",
+      "name": "复核凭证",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "BOOK_ASSIGNMENT"
+    },
+    {
+      "code": "accounting.voucher.post",
+      "name": "过账凭证",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "BOOK_ASSIGNMENT",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "accounting.period.close",
+      "name": "账期结账",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "BOOK_ASSIGNMENT"
+    },
+    {
+      "code": "accounting.period.reopen_execute",
+      "name": "执行反结账",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "period_reopen",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "tax.estimation.manage",
+      "name": "税费测算与调整",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "BOOK_ASSIGNMENT"
+    },
+    {
+      "code": "tax.adjustment.review",
+      "name": "复核税费调整",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "tax_adjustment"
+    },
+    {
+      "code": "tax.filing.review",
+      "name": "复核税务申报",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "BOOK_ASSIGNMENT"
+    },
+    {
+      "code": "tax.filing.submit",
+      "name": "执行税务申报",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "BOOK",
+      "allowedScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "tax_filing",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "tax.payment.execute",
+      "name": "执行缴退税",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "tax_payment",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "tax.enterprise_result.view",
+      "name": "企业查看税务结果",
+      "audiences": [
+        "ENTERPRISE"
+      ],
+      "layer": "LEGAL_ENTITY",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "LEGAL_ENTITY_REPRESENTATIVE"
+    },
+    {
+      "code": "billing.subscription.view",
+      "name": "查看本Organization订阅账单",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "BILLING_SUBSCRIBER"
+    },
+    {
+      "code": "billing.subscription.request",
+      "name": "申请订阅或变更",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "BILLING_SUBSCRIBER",
+      "approvalTemplate": "billing_subscription_change"
+    },
+    {
+      "code": "billing.profile.manage",
+      "name": "管理本Organization开票资料",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "BILLING_SUBSCRIBER",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "billing.payment.request",
+      "name": "申请或查询平台支付",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "BILLING_SUBSCRIBER",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "billing.refund.request",
+      "name": "申请或查询平台退款",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "BILLING_SUBSCRIBER",
+      "approvalTemplate": "billing_refund",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "billing.invoice.request",
+      "name": "按ISSUE或CORRECTION类型申请或查询平台发票",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "BILLING_SUBSCRIBER",
+      "approvalTemplateByRequestType": {
+        "ISSUE": "billing_invoice_issue",
+        "CORRECTION": "billing_invoice_correction"
+      }
+    },
+    {
+      "code": "billing.dispute.submit",
+      "name": "提交或查询计费争议",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "BILLING_SUBSCRIBER",
+      "approvalTemplate": "billing_dispute_resolution"
+    },
+    {
+      "code": "billing.document.download",
+      "name": "下载本Organization计费文档",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "BILLING_SUBSCRIBER"
+    },
+    {
+      "code": "internal.hr.manage",
+      "name": "服务机构人事管理",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "internal.payroll.manage",
+      "name": "服务机构内部工资管理",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4"
+    },
+    {
+      "code": "internal.expense.request",
+      "name": "提交本人报销",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "SELF"
+    },
+    {
+      "code": "internal.expense.approve",
+      "name": "审批内部报销",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "internal.expense.pay",
+      "name": "确认内部报销支付或冲正",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "internal.payroll.self_view",
+      "name": "查看本人工资",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "SELF"
+    },
+    {
+      "code": "internal.dividend.manage",
+      "name": "管理分红方案与负向调整",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "internal.broker.manage",
+      "name": "管理经纪订单佣金与冲正",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "internal.knowledge.manage",
+      "name": "发布停用知识版本",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L2"
+    },
+    {
+      "code": "internal.notice.manage",
+      "name": "发布撤销公告",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L2"
+    },
+    {
+      "code": "collaboration.request.view",
+      "name": "查看企业协作请求",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "LOW",
+      "sensitivityLevel": "L2",
+      "relationshipRequired": "WORKSPACE_PARTICIPANT"
+    },
+    {
+      "code": "collaboration.document.upload",
+      "name": "提交或补传企业材料",
+      "audiences": [
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "REQUEST_RECIPIENT"
+    },
+    {
+      "code": "collaboration.decision.submit",
+      "name": "提交企业确认选择或异议",
+      "audiences": [
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "REQUEST_RECIPIENT",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "collaboration.delivery.download",
+      "name": "下载企业结果交付",
+      "audiences": [
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "DELIVERY_RECIPIENT"
+    },
+    {
+      "code": "connector.authorization.view",
+      "name": "查看本Organization连接器授权摘要",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "CONNECTOR_AUTHORIZATION_OWNER"
+    },
+    {
+      "code": "connector.authorization.request",
+      "name": "申请创建或变更Organization连接器授权",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "CONNECTOR_AUTHORIZATION_OWNER",
+      "approvalTemplate": "connector_authorization_change",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "connector.authorization.approve",
+      "name": "批准Organization连接器授权变更",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "APPROVAL_TASK_ASSIGNEE",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "connector.authorization.revoke",
+      "name": "申请或执行撤销Organization连接器授权",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "ORGANIZATION",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "CONNECTOR_AUTHORIZATION_OWNER",
+      "approvalTemplate": "connector_authorization_change",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "connector.workspace_grant.view",
+      "name": "查看Workspace连接器grant摘要",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3",
+      "relationshipRequired": "WORKSPACE_PARTICIPANT"
+    },
+    {
+      "code": "connector.workspace_grant.request",
+      "name": "申请Workspace连接器grant",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "WORKSPACE_PARTICIPANT",
+      "approvalTemplate": "connector_workspace_grant_change",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "connector.workspace_grant.approve",
+      "name": "批准Workspace连接器grant",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "APPROVAL_TASK_ASSIGNEE",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "connector.workspace_grant.revoke",
+      "name": "申请或执行撤销Workspace连接器grant",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "WORKSPACE",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "WORKSPACE_PARTICIPANT",
+      "approvalTemplate": "connector_workspace_grant_change",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "connector.request.execute",
+      "name": "在有效authorization与grant内执行连接器请求",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L4",
+      "relationshipRequired": "CONNECTOR_ACTIVE_GRANT"
+    },
+    {
+      "code": "report.view",
+      "name": "查看授权报表",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "MEDIUM",
+      "sensitivityLevel": "L3"
+    },
+    {
+      "code": "report.sensitive_export",
+      "name": "导出敏感报表",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "CRITICAL",
+      "sensitivityLevel": "L4",
+      "approvalTemplate": "sensitive_export",
+      "reauthenticationRequired": true
+    },
+    {
+      "code": "audit.event.view",
+      "name": "查看授权范围审计",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "layer": "OBJECT",
+      "allowedScopes": [
+        "ORGANIZATION",
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "riskLevel": "HIGH",
+      "sensitivityLevel": "L3"
+    }
+  ],
+  "roles": [
+    {
+      "code": "platform_admin",
+      "name": "平台管理员",
+      "audience": "PLATFORM",
+      "layer": "PLATFORM",
+      "defaultScopes": [
+        "PLATFORM"
+      ],
+      "systemReserved": true
+    },
+    {
+      "code": "platform_billing_operator",
+      "name": "平台计费运营",
+      "audience": "PLATFORM",
+      "layer": "PLATFORM",
+      "defaultScopes": [
+        "PLATFORM"
+      ],
+      "systemReserved": true
+    },
+    {
+      "code": "platform_connector_operator",
+      "name": "平台连接器运营",
+      "audience": "PLATFORM",
+      "layer": "PLATFORM",
+      "defaultScopes": [
+        "PLATFORM"
+      ],
+      "systemReserved": true
+    },
+    {
+      "code": "platform_support_agent",
+      "name": "平台支持专员",
+      "audience": "PLATFORM",
+      "layer": "PLATFORM",
+      "defaultScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "systemReserved": true
+    },
+    {
+      "code": "platform_security_auditor",
+      "name": "平台安全审计员",
+      "audience": "PLATFORM",
+      "layer": "PLATFORM",
+      "defaultScopes": [
+        "PLATFORM"
+      ],
+      "systemReserved": true
+    },
+    {
+      "code": "provider_org_admin",
+      "name": "服务机构管理员",
+      "audience": "PROVIDER",
+      "layer": "ORGANIZATION",
+      "defaultScopes": [
+        "ORGANIZATION"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "sales_manager",
+      "name": "销售主管",
+      "audience": "PROVIDER",
+      "layer": "ORGANIZATION",
+      "defaultScopes": [
+        "ORGANIZATION",
+        "WORKSPACE"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "sales_specialist",
+      "name": "销售专员",
+      "audience": "PROVIDER",
+      "layer": "ORGANIZATION",
+      "defaultScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "customer_service_manager",
+      "name": "客户服务主管",
+      "audience": "PROVIDER",
+      "layer": "WORKSPACE",
+      "defaultScopes": [
+        "WORKSPACE"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "customer_manager",
+      "name": "客户经理",
+      "audience": "PROVIDER",
+      "layer": "WORKSPACE",
+      "defaultScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "service_specialist",
+      "name": "服务专员",
+      "audience": "PROVIDER",
+      "layer": "WORKSPACE",
+      "defaultScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "accounting_manager",
+      "name": "会计主管",
+      "audience": "PROVIDER",
+      "layer": "BOOK",
+      "defaultScopes": [
+        "WORKSPACE",
+        "BOOK"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "bookkeeper",
+      "name": "代账会计",
+      "audience": "PROVIDER",
+      "layer": "BOOK",
+      "defaultScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "accounting_reviewer",
+      "name": "复核会计",
+      "audience": "PROVIDER",
+      "layer": "BOOK",
+      "defaultScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "tax_manager",
+      "name": "税务主管",
+      "audience": "PROVIDER",
+      "layer": "BOOK",
+      "defaultScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "tax_specialist",
+      "name": "税务专员",
+      "audience": "PROVIDER",
+      "layer": "BOOK",
+      "defaultScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "finance_manager",
+      "name": "经营财务主管",
+      "audience": "PROVIDER",
+      "layer": "ORGANIZATION",
+      "defaultScopes": [
+        "ORGANIZATION",
+        "WORKSPACE"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "finance_staff",
+      "name": "经营财务人员",
+      "audience": "PROVIDER",
+      "layer": "ORGANIZATION",
+      "defaultScopes": [
+        "ORGANIZATION",
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "hr_manager",
+      "name": "人事主管",
+      "audience": "PROVIDER",
+      "layer": "ORGANIZATION",
+      "defaultScopes": [
+        "ORGANIZATION"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "hr_specialist",
+      "name": "人事专员",
+      "audience": "PROVIDER",
+      "layer": "ORGANIZATION",
+      "defaultScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "provider_auditor",
+      "name": "服务机构审计员",
+      "audience": "PROVIDER",
+      "layer": "ORGANIZATION",
+      "defaultScopes": [
+        "ORGANIZATION",
+        "WORKSPACE"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "workspace_provider_manager",
+      "name": "Workspace服务方管理员",
+      "audience": "PROVIDER",
+      "layer": "WORKSPACE",
+      "defaultScopes": [
+        "WORKSPACE"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "workspace_provider_operator",
+      "name": "Workspace服务方协作员",
+      "audience": "PROVIDER",
+      "layer": "WORKSPACE",
+      "defaultScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "enterprise_org_admin",
+      "name": "客户企业管理员",
+      "audience": "ENTERPRISE",
+      "layer": "ORGANIZATION",
+      "defaultScopes": [
+        "ORGANIZATION"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "enterprise_legal_representative",
+      "name": "企业法人代表",
+      "audience": "ENTERPRISE",
+      "layer": "LEGAL_ENTITY",
+      "defaultScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "workspace_client_admin",
+      "name": "Workspace客户方管理员",
+      "audience": "ENTERPRISE",
+      "layer": "WORKSPACE",
+      "defaultScopes": [
+        "WORKSPACE"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "enterprise_finance_contact",
+      "name": "企业财务联系人",
+      "audience": "ENTERPRISE",
+      "layer": "LEGAL_ENTITY",
+      "defaultScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "enterprise_material_operator",
+      "name": "企业资料经办人",
+      "audience": "ENTERPRISE",
+      "layer": "WORKSPACE",
+      "defaultScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "systemReserved": false
+    },
+    {
+      "code": "enterprise_viewer",
+      "name": "企业只读成员",
+      "audience": "ENTERPRISE",
+      "layer": "WORKSPACE",
+      "defaultScopes": [
+        "WORKSPACE"
+      ],
+      "systemReserved": false
+    }
+  ],
+  "rolePermissions": [
+    {
+      "role": "platform_admin",
+      "allow": [
+        "platform.identity.manage",
+        "platform.role_assignment.manage",
+        "platform.organization.view",
+        "platform.organization.verification_review",
+        "platform.organization.capability_approve",
+        "platform.organization.status_manage",
+        "platform.organization.close",
+        "platform.legal_entity.claim_review",
+        "platform.billing.view",
+        "platform.billing.plan_publish",
+        "platform.billing.refund_approve",
+        "platform.connector.provider_manage",
+        "platform.connector.credential_manage",
+        "platform.connector.callback_operate",
+        "platform.operations.manage",
+        "platform.support.request",
+        "platform.support.revoke",
+        "platform.audit.view"
+      ]
+    },
+    {
+      "role": "platform_billing_operator",
+      "allow": [
+        "platform.organization.view",
+        "platform.billing.view",
+        "platform.billing.plan_draft",
+        "platform.billing.subscription_request",
+        "platform.billing.subscription_execute",
+        "platform.billing.usage_correct",
+        "platform.billing.bill_finalize",
+        "platform.billing.payment_execute",
+        "platform.billing.refund_execute",
+        "platform.billing.invoice_issue",
+        "platform.billing.invoice_correct",
+        "platform.billing.dispute_resolve",
+        "platform.billing.delinquency_execute",
+        "platform.billing.reconciliation_execute",
+        "platform.audit.view"
+      ]
+    },
+    {
+      "role": "platform_connector_operator",
+      "allow": [
+        "platform.connector.provider_manage",
+        "platform.connector.credential_manage",
+        "platform.connector.callback_operate",
+        "platform.operations.manage",
+        "platform.audit.view"
+      ]
+    },
+    {
+      "role": "platform_support_agent",
+      "allow": [
+        "platform.support.request",
+        "platform.support.execute"
+      ],
+      "deny": [
+        "platform.support.issue",
+        "platform.connector.credential_manage",
+        "platform.role_assignment.manage",
+        "platform.billing.plan_publish",
+        "platform.billing.subscription_execute",
+        "platform.billing.usage_correct",
+        "platform.billing.bill_finalize",
+        "platform.billing.payment_execute",
+        "platform.billing.refund_approve",
+        "platform.billing.refund_execute",
+        "platform.billing.invoice_issue",
+        "platform.billing.invoice_correct",
+        "platform.billing.dispute_resolve",
+        "platform.billing.delinquency_execute"
+      ]
+    },
+    {
+      "role": "platform_security_auditor",
+      "allow": [
+        "platform.organization.view",
+        "platform.audit.view",
+        "platform.audit.export"
+      ],
+      "deny": [
+        "platform.identity.manage",
+        "platform.connector.credential_manage",
+        "platform.support.execute"
+      ]
+    },
+    {
+      "role": "provider_org_admin",
+      "allow": [
+        "organization.profile.view",
+        "organization.profile.manage",
+        "organization.member.view",
+        "organization.member.manage",
+        "authorization.role.view",
+        "authorization.role.manage",
+        "authorization.role_assignment.manage",
+        "workspace.workspace.view",
+        "workspace.workspace.create",
+        "workspace.workspace.manage",
+        "workspace.participant.manage",
+        "workspace.membership.manage",
+        "workspace.subject.view",
+        "billing.subscription.view",
+        "billing.subscription.request",
+        "billing.profile.manage",
+        "billing.invoice.request",
+        "connector.authorization.view",
+        "connector.authorization.request",
+        "connector.authorization.revoke",
+        "internal.knowledge.manage",
+        "internal.notice.manage",
+        "support.access.revoke",
+        "audit.event.view"
+      ]
+    },
+    {
+      "role": "sales_manager",
+      "allow": [
+        "workspace.workspace.view",
+        "customer.lead.manage",
+        "customer.opportunity.manage",
+        "contract.contract.view",
+        "contract.contract.manage",
+        "contract.contract.submit",
+        "report.view"
+      ]
+    },
+    {
+      "role": "sales_specialist",
+      "allow": [
+        "workspace.workspace.view",
+        "customer.lead.manage",
+        "customer.opportunity.manage",
+        "contract.contract.view",
+        "contract.contract.manage"
+      ]
+    },
+    {
+      "role": "customer_service_manager",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.subject.view",
+        "service.work_order.manage",
+        "service.lifecycle.execute",
+        "collaboration.request.view",
+        "report.view"
+      ]
+    },
+    {
+      "role": "customer_manager",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.subject.view",
+        "service.work_order.manage",
+        "collaboration.request.view",
+        "contract.contract.view"
+      ]
+    },
+    {
+      "role": "service_specialist",
+      "allow": [
+        "workspace.workspace.view",
+        "service.work_order.manage",
+        "collaboration.request.view"
+      ]
+    },
+    {
+      "role": "accounting_manager",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.subject.view",
+        "workspace.book_assignment.manage",
+        "accounting.book.activate",
+        "accounting.book.view",
+        "accounting.period.close",
+        "accounting.period.reopen_execute",
+        "report.view"
+      ]
+    },
+    {
+      "role": "bookkeeper",
+      "allow": [
+        "workspace.workspace.view",
+        "accounting.book.view",
+        "accounting.voucher.prepare",
+        "report.view"
+      ]
+    },
+    {
+      "role": "accounting_reviewer",
+      "allow": [
+        "workspace.workspace.view",
+        "accounting.book.view",
+        "accounting.voucher.review",
+        "accounting.voucher.post",
+        "tax.adjustment.review",
+        "tax.filing.review",
+        "report.view"
+      ]
+    },
+    {
+      "role": "tax_manager",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.subject.view",
+        "accounting.book.view",
+        "tax.estimation.manage",
+        "tax.adjustment.review",
+        "tax.filing.review",
+        "tax.filing.submit",
+        "tax.payment.execute",
+        "report.view"
+      ]
+    },
+    {
+      "role": "tax_specialist",
+      "allow": [
+        "workspace.workspace.view",
+        "accounting.book.view",
+        "tax.estimation.manage",
+        "tax.filing.submit",
+        "report.view"
+      ]
+    },
+    {
+      "role": "finance_manager",
+      "allow": [
+        "workspace.workspace.view",
+        "contract.contract.view",
+        "finance.receipt.manage",
+        "finance.refund.execute",
+        "billing.subscription.view",
+        "billing.payment.request",
+        "billing.refund.request",
+        "billing.invoice.request",
+        "billing.dispute.submit",
+        "billing.document.download",
+        "internal.expense.approve",
+        "internal.expense.pay",
+        "internal.dividend.manage",
+        "internal.broker.manage",
+        "report.view",
+        "report.sensitive_export"
+      ]
+    },
+    {
+      "role": "finance_staff",
+      "allow": [
+        "workspace.workspace.view",
+        "contract.contract.view",
+        "finance.receipt.manage",
+        "report.view"
+      ]
+    },
+    {
+      "role": "hr_manager",
+      "allow": [
+        "organization.profile.view",
+        "organization.member.view",
+        "internal.hr.manage",
+        "internal.payroll.manage",
+        "internal.expense.approve",
+        "internal.knowledge.manage",
+        "internal.notice.manage",
+        "report.view"
+      ]
+    },
+    {
+      "role": "hr_specialist",
+      "allow": [
+        "organization.profile.view",
+        "organization.member.view",
+        "internal.hr.manage",
+        "internal.expense.request",
+        "internal.payroll.self_view"
+      ]
+    },
+    {
+      "role": "provider_auditor",
+      "allow": [
+        "organization.profile.view",
+        "organization.member.view",
+        "authorization.role.view",
+        "workspace.workspace.view",
+        "workspace.subject.view",
+        "contract.contract.view",
+        "accounting.book.view",
+        "billing.subscription.view",
+        "connector.authorization.view",
+        "report.view",
+        "audit.event.view"
+      ],
+      "deny": [
+        "authorization.role_assignment.manage",
+        "connector.authorization.request",
+        "connector.authorization.revoke",
+        "connector.workspace_grant.request",
+        "connector.workspace_grant.revoke",
+        "tax.payment.execute"
+      ]
+    },
+    {
+      "role": "workspace_provider_manager",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.workspace.manage",
+        "workspace.workspace.activate",
+        "workspace.workspace.close",
+        "workspace.participant.manage",
+        "workspace.membership.manage",
+        "workspace.subject.view",
+        "workspace.subject.manage",
+        "workspace.book_assignment.manage",
+        "contract.contract.view",
+        "service.lifecycle.execute",
+        "collaboration.request.view",
+        "connector.workspace_grant.view",
+        "connector.workspace_grant.request",
+        "connector.workspace_grant.revoke",
+        "support.access.revoke",
+        "report.view"
+      ]
+    },
+    {
+      "role": "workspace_provider_operator",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.subject.view",
+        "contract.contract.view",
+        "service.work_order.manage",
+        "collaboration.request.view"
+      ]
+    },
+    {
+      "role": "enterprise_org_admin",
+      "allow": [
+        "organization.profile.view",
+        "organization.profile.manage",
+        "organization.member.view",
+        "organization.member.manage",
+        "organization.legal_entity.claim",
+        "authorization.role.view",
+        "authorization.role.manage",
+        "authorization.role_assignment.manage",
+        "workspace.workspace.view",
+        "workspace.membership.manage",
+        "connector.authorization.view",
+        "connector.authorization.request",
+        "connector.authorization.revoke",
+        "support.access.revoke",
+        "audit.event.view"
+      ]
+    },
+    {
+      "role": "enterprise_legal_representative",
+      "allow": [
+        "organization.profile.view",
+        "organization.legal_entity.claim",
+        "workspace.workspace.view",
+        "workspace.workspace.activate",
+        "workspace.workspace.close",
+        "workspace.subject.view",
+        "workspace.subject.manage",
+        "workspace.book_assignment.manage",
+        "contract.contract.view",
+        "contract.contract.sign",
+        "finance.enterprise_summary.view",
+        "accounting.book.view",
+        "tax.enterprise_result.view",
+        "collaboration.request.view",
+        "collaboration.decision.submit",
+        "connector.authorization.view",
+        "connector.authorization.request",
+        "connector.authorization.revoke",
+        "connector.workspace_grant.view",
+        "connector.workspace_grant.request",
+        "connector.workspace_grant.revoke",
+        "support.access.revoke",
+        "report.view"
+      ]
+    },
+    {
+      "role": "workspace_client_admin",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.workspace.manage",
+        "workspace.workspace.activate",
+        "workspace.workspace.close",
+        "workspace.participant.manage",
+        "workspace.membership.manage",
+        "workspace.subject.view",
+        "workspace.subject.manage",
+        "workspace.book_assignment.manage",
+        "contract.contract.view",
+        "finance.enterprise_summary.view",
+        "accounting.book.view",
+        "tax.enterprise_result.view",
+        "collaboration.request.view",
+        "connector.workspace_grant.view",
+        "connector.workspace_grant.request",
+        "connector.workspace_grant.revoke",
+        "support.access.revoke",
+        "report.view"
+      ]
+    },
+    {
+      "role": "enterprise_finance_contact",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.subject.view",
+        "contract.contract.view",
+        "finance.enterprise_summary.view",
+        "accounting.book.view",
+        "tax.enterprise_result.view",
+        "collaboration.request.view",
+        "collaboration.decision.submit",
+        "collaboration.delivery.download",
+        "report.view"
+      ]
+    },
+    {
+      "role": "enterprise_material_operator",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.subject.view",
+        "collaboration.request.view",
+        "collaboration.document.upload",
+        "collaboration.decision.submit",
+        "collaboration.delivery.download"
+      ]
+    },
+    {
+      "role": "enterprise_viewer",
+      "allow": [
+        "workspace.workspace.view",
+        "workspace.subject.view",
+        "contract.contract.view",
+        "finance.enterprise_summary.view",
+        "tax.enterprise_result.view",
+        "collaboration.request.view",
+        "report.view"
+      ]
+    }
+  ],
+  "relationshipResolvers": [
+    {
+      "code": "SELF",
+      "audiences": [
+        "PLATFORM",
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "strategy": "AUTHENTICATED_SELF"
+    },
+    {
+      "code": "OWNED_OR_ASSIGNED",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "strategy": "PROVIDER_PRIVATE_OWNER_OR_ASSIGNMENT"
+    },
+    {
+      "code": "ASSIGNED",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "strategy": "CURRENT_OBJECT_ASSIGNMENT"
+    },
+    {
+      "code": "WORKSPACE_PARTICIPANT",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "strategy": "ACTIVE_PARTICIPANT_AND_MEMBERSHIP"
+    },
+    {
+      "code": "LEGAL_ENTITY_REPRESENTATIVE",
+      "audiences": [
+        "ENTERPRISE"
+      ],
+      "strategy": "ACTIVE_PRIMARY_CLIENT_CONTROL_OR_APPROVED_REPRESENTATION_OWNER_MAPPING_AND_WORKSPACE_SUBJECT",
+      "serviceAuthorizationCanSubstituteOwnerClaim": false
+    },
+    {
+      "code": "WORKSPACE_SUBJECT_LEGAL_ENTITY",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "strategy": "PRIMARY_CLIENT_ACTIVE_CONTROL_OR_APPROVED_REPRESENTATION_OWNER_MAPPING_PLUS_PROVIDER_SIGNED_EFFECTIVE_CONTRACT_OR_ACTIVE_SERVICE_AUTHORIZATION_COVERING_WORKSPACE_SUBJECT_SCOPE_TERM",
+      "providerEvidenceMode": "EXACTLY_ONE_OF_CONTRACT_OR_SERVICE_AUTHORIZATION",
+      "regulatedActionAuthorizationStillRequired": true,
+      "providerEvidenceCanSubstituteOwnerClaim": false
+    },
+    {
+      "code": "BOOK_ASSIGNMENT",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "strategy": "ACTIVE_PROVIDER_BOOK_ASSIGNMENT"
+    },
+    {
+      "code": "BOOK_ASSIGNMENT_OR_REPRESENTATIVE",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "strategy": "AUDIENCE_SPECIFIC_BOOK_RELATION"
+    },
+    {
+      "code": "REQUEST_RECIPIENT",
+      "audiences": [
+        "ENTERPRISE"
+      ],
+      "strategy": "FROZEN_COLLABORATION_REQUEST_RECIPIENT"
+    },
+    {
+      "code": "DELIVERY_RECIPIENT",
+      "audiences": [
+        "ENTERPRISE"
+      ],
+      "strategy": "FROZEN_RESULT_DELIVERY_RECIPIENT"
+    },
+    {
+      "code": "SUPPORT_GRANT",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "strategy": "ACTIVE_TIME_LIMITED_SUPPORT_ACCESS_GRANT"
+    },
+    {
+      "code": "SUPPORT_TARGET_OWNER",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "strategy": "ACTIVE_TARGET_DATA_OWNER_RELATION"
+    },
+    {
+      "code": "APPROVAL_TASK_ASSIGNEE",
+      "audiences": [
+        "PLATFORM",
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "strategy": "CURRENT_OPEN_TASK_DERIVED_ASSIGNEE"
+    },
+    {
+      "code": "CONNECTOR_AUTHORIZATION_OWNER",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "strategy": "ACTUAL_EXTERNAL_ACCOUNT_LEGAL_ENTITY_OR_ACCOUNT_OWNER"
+    },
+    {
+      "code": "CONNECTOR_ACTIVE_GRANT",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "strategy": "ACTIVE_AUTHORIZATION_AND_WORKSPACE_GRANT_EXACT_OPERATION"
+    },
+    {
+      "code": "BILLING_SUBSCRIBER",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "strategy": "CURRENT_ORGANIZATION_IS_ACTIVE_SUBSCRIBER_WITH_ACTIVE_PROVIDE_SERVICE_AND_OWNS_BILLING_LEGAL_ENTITY",
+      "onReceiveServiceOnly": "BLOCK"
+    }
+  ],
+  "fieldPolicies": [
+    {
+      "resource": "legal_entity",
+      "fieldGroup": "identifier",
+      "sensitivityLevel": "L4",
+      "audiences": [
+        "PLATFORM",
+        "ENTERPRISE"
+      ],
+      "defaultMask": "FULL",
+      "plainActions": [
+        "platform.legal_entity.claim_review",
+        "organization.legal_entity.claim"
+      ],
+      "audit": true,
+      "reauthenticationRequired": true
+    },
+    {
+      "resource": "provider_customer_profile",
+      "fieldGroup": "internal_profile",
+      "sensitivityLevel": "L3",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "defaultMask": "NONE",
+      "plainActions": [
+        "customer.lead.manage",
+        "customer.opportunity.manage"
+      ],
+      "audit": true
+    },
+    {
+      "resource": "contact",
+      "fieldGroup": "mobile_email",
+      "sensitivityLevel": "L2",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "defaultMask": "PARTIAL",
+      "plainActions": [
+        "organization.profile.view",
+        "organization.profile.manage",
+        "customer.lead.manage",
+        "customer.opportunity.manage",
+        "workspace.subject.view"
+      ],
+      "audit": true
+    },
+    {
+      "resource": "contract",
+      "fieldGroup": "amount_terms",
+      "sensitivityLevel": "L3",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "defaultMask": "RELATIONSHIP_BASED",
+      "plainActions": [
+        "contract.contract.view"
+      ],
+      "audit": true
+    },
+    {
+      "resource": "bank_account",
+      "fieldGroup": "account_number",
+      "sensitivityLevel": "L4",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "defaultMask": "LAST4",
+      "plainActions": [
+        "finance.receipt.manage",
+        "tax.payment.execute",
+        "billing.profile.manage"
+      ],
+      "audit": true,
+      "reauthenticationRequired": true
+    },
+    {
+      "resource": "payroll",
+      "fieldGroup": "person_amount",
+      "sensitivityLevel": "L4",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "defaultMask": "FULL",
+      "plainActions": [
+        "internal.payroll.manage",
+        "internal.payroll.self_view"
+      ],
+      "audit": true
+    },
+    {
+      "resource": "tax",
+      "fieldGroup": "filing_payment_detail",
+      "sensitivityLevel": "L4",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "defaultMask": "RELATIONSHIP_BASED",
+      "plainActions": [
+        "tax.enterprise_result.view",
+        "tax.filing.review",
+        "tax.filing.submit"
+      ],
+      "audit": true
+    },
+    {
+      "resource": "connector",
+      "fieldGroup": "secret",
+      "sensitivityLevel": "L4",
+      "audiences": [
+        "PLATFORM",
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "defaultMask": "NEVER_RETURN",
+      "plainActions": [],
+      "audit": true,
+      "reauthenticationRequired": true
+    },
+    {
+      "resource": "connector_event",
+      "fieldGroup": "raw_payload",
+      "sensitivityLevel": "L4",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "defaultMask": "NEVER_RETURN",
+      "plainActions": [],
+      "audit": true,
+      "reauthenticationRequired": true
+    },
+    {
+      "resource": "audit_event",
+      "fieldGroup": "technical_context",
+      "sensitivityLevel": "L4",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "defaultMask": "PARTIAL",
+      "plainActions": [
+        "platform.audit.export"
+      ],
+      "audit": true,
+      "reauthenticationRequired": true
+    },
+    {
+      "resource": "commercial_billing",
+      "fieldGroup": "billing_profile_payment_refund",
+      "sensitivityLevel": "L4",
+      "audiences": [
+        "PLATFORM",
+        "PROVIDER"
+      ],
+      "defaultMask": "LAST4",
+      "plainActions": [
+        "billing.profile.manage",
+        "billing.payment.request",
+        "billing.refund.request",
+        "platform.billing.payment_execute",
+        "platform.billing.refund_approve",
+        "platform.billing.refund_execute"
+      ],
+      "audit": true,
+      "reauthenticationRequired": true
+    },
+    {
+      "resource": "commercial_billing",
+      "fieldGroup": "credit_ledger_integrity",
+      "sensitivityLevel": "L4",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "defaultMask": "NEVER_RETURN",
+      "plainActions": [
+        "platform.billing.reconciliation_execute"
+      ],
+      "audit": true,
+      "reauthenticationRequired": true
+    }
+  ],
+  "sodPolicies": [
+    {
+      "code": "SOD-ROLE-001",
+      "name": "禁止高风险自授权",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "role_grantee",
+        "role_grantor"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-CONTRACT-001",
+      "name": "合同申请与终审分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "contract_applicant",
+        "final_approver"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-VOUCHER-001",
+      "name": "凭证编制复核过账分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "voucher_preparer",
+        "voucher_reviewer"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-CLOSE-001",
+      "name": "反结账申请终审执行分离",
+      "minimumDistinctPeople": 3,
+      "conflicts": [
+        "reopen_applicant",
+        "final_approver",
+        "reopen_executor"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-TAX-001",
+      "name": "税务编制复核执行分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "tax_preparer_or_last_editor",
+        "tax_reviewer",
+        "filing_executor_and_final_approver"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-PAY-001",
+      "name": "缴退税申请批准执行分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "payment_initiator",
+        "payment_approver_or_executor"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-CLAIM-001",
+      "name": "主体认领提交与冲突复核分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "claim_submitter",
+        "claim_conflict_reviewer"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-ORG-001",
+      "name": "Organization关闭申请批准执行分离",
+      "minimumDistinctPeople": 3,
+      "conflicts": [
+        "organization_closure_requester",
+        "organization_closure_approver",
+        "organization_closure_executor"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-ORG-002",
+      "name": "Organization状态变更申请与复核执行分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "organization_status_requester",
+        "organization_status_reviewer_or_executor"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-ORG-003",
+      "name": "Organization核验提交与平台复核决定分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "organization_verification_submitter",
+        "organization_verification_reviewer"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-ORG-004",
+      "name": "Organization能力申请与平台状态决定分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "organization_capability_requester",
+        "organization_capability_decider"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-SUPPORT-001",
+      "name": "平台支持申请与目标方批准分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "support_requester",
+        "target_approver"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-EXPORT-001",
+      "name": "敏感导出申请与批准分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "export_requester",
+        "data_owner_approver"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-BILL-001",
+      "name": "平台套餐价格草拟与批准发布分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "billing_plan_drafter",
+        "billing_plan_approver_or_publisher"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-BILL-002",
+      "name": "订阅变更含平台强制开通终止恢复及计量更正账单定稿人工收款欠费例外申请批准执行分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "billing_change_requester",
+        "billing_approver",
+        "billing_executor"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-BILL-003",
+      "name": "退款与平台发票初次资格审核开具更正及争议处理申请批准执行分离",
+      "minimumDistinctPeople": 3,
+      "conflicts": [
+        "billing_requester",
+        "billing_approver",
+        "billing_executor_or_resolver"
+      ],
+      "onFailure": "BLOCK"
+    },
+    {
+      "code": "SOD-CONN-001",
+      "name": "连接器申请所有方批准与执行分离",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "connector_requester",
+        "authorization_owner_approver",
+        "grant_executor"
+      ],
+      "onFailure": "BLOCK"
+    }
+  ],
+  "approvalResolvers": [
+    {
+      "code": "platform_capability_reviewer",
+      "audience": "PLATFORM",
+      "strategy": "ROLE",
+      "roleCode": "platform_admin",
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "platform_organization_verification_reviewer",
+      "audience": "PLATFORM",
+      "strategy": "ROLE",
+      "roleCode": "platform_admin",
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "platform_organization_status_reviewer",
+      "audience": "PLATFORM",
+      "strategy": "ROLE",
+      "roleCode": "platform_admin",
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "platform_organization_closure_reviewer",
+      "audience": "PLATFORM",
+      "strategy": "ROLE",
+      "roleCode": "platform_admin",
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "provider_authorized_manager",
+      "audience": "PROVIDER",
+      "strategy": "ROLE_OR_WORKSPACE_ROLE",
+      "roleCodes": [
+        "provider_org_admin",
+        "workspace_provider_manager"
+      ],
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "enterprise_authorized_representative",
+      "audience": "ENTERPRISE",
+      "strategy": "LEGAL_ENTITY_RELATIONSHIP",
+      "roleCodes": [
+        "enterprise_legal_representative",
+        "workspace_client_admin"
+      ],
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "tax_manager_or_two_reviewers",
+      "audience": "PROVIDER",
+      "strategy": "POLICY",
+      "allowedModes": [
+        "TAX_MANAGER",
+        "TWO_DISTINCT_REVIEWERS"
+      ],
+      "roleCodes": [
+        "tax_manager",
+        "accounting_reviewer"
+      ],
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "authorized_payer",
+      "audience": "ENTERPRISE",
+      "strategy": "ROLE_AND_LEGAL_ENTITY_RELATIONSHIP",
+      "roleCodes": [
+        "enterprise_finance_contact",
+        "enterprise_legal_representative"
+      ],
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "data_owner",
+      "audience": "REQUEST_AUDIENCE",
+      "strategy": "SCOPE_OWNER_OR_CONFIGURED_ROLE",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "platform_billing_approver",
+      "audience": "PLATFORM",
+      "strategy": "ROLE",
+      "roleCode": "platform_admin",
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "connector_authorization_owner_approver",
+      "audience": "REQUEST_AUDIENCE",
+      "strategy": "RELATIONSHIP",
+      "relationshipCode": "CONNECTOR_AUTHORIZATION_OWNER",
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    },
+    {
+      "code": "connector_grantee_manager",
+      "audience": "REQUEST_AUDIENCE",
+      "strategy": "WORKSPACE_PARTICIPANT_MANAGER",
+      "roleCodes": [
+        "workspace_provider_manager",
+        "workspace_client_admin"
+      ],
+      "mode": "ANY",
+      "onNoResult": "BLOCK"
+    }
+  ],
+  "approvalTemplates": [
+    {
+      "code": "organization_verification",
+      "name": "Organization资料与证据核验",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE",
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-ORG-003"
+      ],
+      "candidateExclusions": [
+        "business.submittedBy"
+      ],
+      "nodes": [
+        {
+          "code": "platform_verification_review",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_organization_verification_reviewer",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "decisionPermission": "platform.organization.verification_review",
+      "guards": [
+        "organization.status=VERIFYING",
+        "profileVersion/contentHash unchanged",
+        "antiEnumerationResponse=true"
+      ]
+    },
+    {
+      "code": "organization_capability_activation",
+      "name": "Organization能力状态决定",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE",
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-ORG-004"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy"
+      ],
+      "nodes": [
+        {
+          "code": "platform_review",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_capability_reviewer",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "decisionPermission": "platform.organization.capability_approve",
+      "allowedActions": [
+        "APPROVE",
+        "SUSPEND",
+        "RESUME",
+        "REVOKE"
+      ],
+      "guards": [
+        "expected capability version",
+        "evidence/validity/impact/contentHash unchanged",
+        "organization.status not in CLOSED",
+        "decline or withdraw maps REQUESTED to REVOKED with reason and never creates REJECTED status",
+        "RESUME rechecks organization/qualification/subscription/security/affected workspaces"
+      ]
+    },
+    {
+      "code": "organization_status_change",
+      "name": "Organization暂停恢复与紧急暂停补审",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-ORG-002"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy"
+      ],
+      "executorExclusions": [
+        "business.requestedBy"
+      ],
+      "nodes": [
+        {
+          "code": "platform_status_review",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_organization_status_reviewer",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.organization.status_manage",
+      "emergencySuspend": {
+        "immediateNarrowing": true,
+        "postReviewRequired": true,
+        "postReviewRequesterExcluded": true,
+        "onOverdue": "KEEP_SUSPENDED_AND_ALERT"
+      },
+      "resumeGuards": [
+        "capability current",
+        "active member exists",
+        "subscription disposition valid",
+        "security clear",
+        "workspace impact accepted",
+        "do not resurrect terminal relations"
+      ]
+    },
+    {
+      "code": "organization_closure",
+      "name": "Organization受控关闭",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-ORG-001"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy"
+      ],
+      "executorExclusions": [
+        "business.requestedBy",
+        "approval.approvedBy"
+      ],
+      "nodes": [
+        {
+          "code": "platform_closure_review",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_organization_closure_reviewer",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.organization.close"
+    },
+    {
+      "code": "enterprise_legal_entity_claim",
+      "name": "企业LegalEntity认领",
+      "audiences": [
+        "ENTERPRISE",
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-CLAIM-001"
+      ],
+      "nodes": [
+        {
+          "code": "enterprise_confirm",
+          "selectorType": "RESOLVER",
+          "selectorRef": "enterprise_authorized_representative",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "platform_conflict_review",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_capability_reviewer",
+          "mode": "POLICY",
+          "condition": "claim.conflictReviewRequired=true"
+        }
+      ]
+    },
+    {
+      "code": "workspace_activation",
+      "name": "Workspace激活",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "businessScopes": [
+        "WORKSPACE"
+      ],
+      "contentHashRequired": true,
+      "nodes": [
+        {
+          "code": "provider_confirm",
+          "selectorType": "ROLE",
+          "selectorRef": "workspace_provider_manager",
+          "participantRole": "PRIMARY_PROVIDER",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "client_confirm",
+          "selectorType": "ROLE",
+          "selectorRef": "workspace_client_admin",
+          "participantRole": "PRIMARY_CLIENT",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ]
+    },
+    {
+      "code": "workspace_participant_change",
+      "name": "Workspace参与方或关闭变更",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE",
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "nodes": [
+        {
+          "code": "provider_confirm",
+          "selectorType": "ROLE",
+          "selectorRef": "workspace_provider_manager",
+          "participantRole": "PRIMARY_PROVIDER",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "client_confirm",
+          "selectorType": "ROLE",
+          "selectorRef": "workspace_client_admin",
+          "participantRole": "PRIMARY_CLIENT",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "partner_platform_gate",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_capability_reviewer",
+          "mode": "POLICY",
+          "condition": "change.enablesPartner=true"
+        }
+      ]
+    },
+    {
+      "code": "workspace_subject_change",
+      "name": "Workspace主体或账套范围变更",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "businessScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK"
+      ],
+      "contentHashRequired": true,
+      "nodes": [
+        {
+          "code": "enterprise_subject_confirm",
+          "selectorType": "RESOLVER",
+          "selectorRef": "enterprise_authorized_representative",
+          "participantRole": "PRIMARY_CLIENT",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "provider_impact_confirm",
+          "selectorType": "RESOLVER",
+          "selectorRef": "provider_authorized_manager",
+          "participantRole": "PRIMARY_PROVIDER",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ]
+    },
+    {
+      "code": "contract_approval",
+      "name": "合同审批",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "businessScopes": [
+        "WORKSPACE",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-CONTRACT-001"
+      ],
+      "nodes": [
+        {
+          "code": "sales_review",
+          "selectorType": "ROLE",
+          "selectorRef": "sales_manager",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "authorized_manager",
+          "selectorType": "RESOLVER",
+          "selectorRef": "provider_authorized_manager",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ]
+    },
+    {
+      "code": "service_lifecycle_change",
+      "name": "服务暂停恢复终止",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "businessScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "nodes": [
+        {
+          "code": "service_review",
+          "selectorType": "ROLE",
+          "selectorRef": "customer_service_manager",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "accounting_review",
+          "selectorType": "ROLE",
+          "selectorRef": "accounting_manager",
+          "mode": "POLICY",
+          "condition": "impact.hasAccounting=true"
+        },
+        {
+          "code": "tax_review",
+          "selectorType": "ROLE",
+          "selectorRef": "tax_manager",
+          "mode": "POLICY",
+          "condition": "impact.hasTax=true"
+        },
+        {
+          "code": "enterprise_confirm",
+          "selectorType": "RESOLVER",
+          "selectorRef": "enterprise_authorized_representative",
+          "mode": "POLICY",
+          "condition": "impact.enterpriseConfirmationRequired=true"
+        }
+      ]
+    },
+    {
+      "code": "book_activation",
+      "name": "账套激活",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "businessScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK"
+      ],
+      "contentHashRequired": true,
+      "nodes": [
+        {
+          "code": "accounting_manager_review",
+          "selectorType": "ROLE",
+          "selectorRef": "accounting_manager",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ]
+    },
+    {
+      "code": "period_reopen",
+      "name": "反结账",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "businessScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-CLOSE-001"
+      ],
+      "nodes": [
+        {
+          "code": "accounting_manager_review",
+          "selectorType": "ROLE",
+          "selectorRef": "accounting_manager",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "tax_manager_review",
+          "selectorType": "ROLE",
+          "selectorRef": "tax_manager",
+          "mode": "POLICY",
+          "condition": "period.hasEffectiveFiling=true"
+        }
+      ],
+      "executorPermission": "accounting.period.reopen_execute"
+    },
+    {
+      "code": "tax_adjustment",
+      "name": "税费调整",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "businessScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-TAX-001"
+      ],
+      "candidateExclusions": [
+        "business.preparedBy",
+        "business.lastModifiedBy"
+      ],
+      "nodes": [
+        {
+          "code": "accounting_review",
+          "selectorType": "ROLE",
+          "selectorRef": "accounting_reviewer",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "tax_manager_review",
+          "selectorType": "ROLE",
+          "selectorRef": "tax_manager",
+          "mode": "POLICY",
+          "condition": "adjustment.riskLevel=HIGH"
+        }
+      ]
+    },
+    {
+      "code": "tax_filing",
+      "name": "税务申报",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "businessScopes": [
+        "BOOK",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-TAX-001"
+      ],
+      "candidateExclusions": [
+        "business.preparedBy",
+        "business.lastModifiedBy"
+      ],
+      "nodes": [
+        {
+          "code": "filing_review",
+          "selectorType": "RESOLVER",
+          "selectorRef": "tax_manager_or_two_reviewers",
+          "mode": "POLICY"
+        }
+      ],
+      "executorPermission": "tax.filing.submit"
+    },
+    {
+      "code": "finance_refund",
+      "name": "经营退款执行",
+      "audiences": [
+        "PROVIDER"
+      ],
+      "businessScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "secondConfirmation": true,
+      "sodPolicies": [
+        "SOD-PAY-001"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy"
+      ],
+      "nodes": [
+        {
+          "code": "finance_manager_review",
+          "selectorType": "ROLE",
+          "selectorRef": "finance_manager",
+          "participantRole": "PRIMARY_PROVIDER",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "provider_authorized_manager_review",
+          "selectorType": "RESOLVER",
+          "selectorRef": "provider_authorized_manager",
+          "participantRole": "PRIMARY_PROVIDER",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "finance.refund.execute"
+    },
+    {
+      "code": "tax_payment",
+      "name": "缴退税及高风险资金执行",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "businessScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "secondConfirmation": true,
+      "sodPolicies": [
+        "SOD-PAY-001"
+      ],
+      "nodes": [
+        {
+          "code": "provider_tax_review",
+          "selectorType": "ROLE",
+          "selectorRef": "tax_manager",
+          "participantRole": "PRIMARY_PROVIDER",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "enterprise_payer_confirm",
+          "selectorType": "RESOLVER",
+          "selectorRef": "authorized_payer",
+          "participantRole": "PRIMARY_CLIENT",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ]
+    },
+    {
+      "code": "platform_role_assignment",
+      "name": "平台高风险角色分配",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-ROLE-001"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy",
+        "business.granteeUserId"
+      ],
+      "nodes": [
+        {
+          "code": "platform_security_review",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_capability_reviewer",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.role_assignment.manage"
+    },
+    {
+      "code": "billing_plan_publish",
+      "name": "套餐价格批准发布",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "PLATFORM",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-BILL-001"
+      ],
+      "candidateExclusions": [
+        "business.draftedBy",
+        "business.requestedBy"
+      ],
+      "nodes": [
+        {
+          "code": "billing_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.billing.plan_publish"
+    },
+    {
+      "code": "billing_subscription_change",
+      "name": "订阅创建与变更执行",
+      "audiences": [
+        "PROVIDER",
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-BILL-002"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy"
+      ],
+      "executorExclusions": [
+        "business.requestedBy"
+      ],
+      "requestTypeGuards": {
+        "START": [
+          "ACTIVE_PROVIDE_SERVICE_SUBSCRIBER",
+          "VALID_BILLING_LEGAL_ENTITY",
+          "PUBLISHED_PLAN",
+          "TERMS_ACCEPTANCE_OR_SIGNED_CONTRACT",
+          "NO_CONSENT_ONLY_TRIAL_NO_SILENT_ACTIVE"
+        ],
+        "FORCE_RESTORE": [
+          "BALANCE_OR_APPROVED_DISPOSITION",
+          "ORGANIZATION_CAPABILITY_SECURITY_VALID",
+          "CONTRACT_AND_TERMS_VALID",
+          "DELINQUENCY_RESTORE_REQUIRES_DELINQUENCY_EXCEPTION"
+        ]
+      },
+      "nodes": [
+        {
+          "code": "billing_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.billing.subscription_execute"
+    },
+    {
+      "code": "billing_usage_correction",
+      "name": "计量更正",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "PLATFORM",
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-BILL-002"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy",
+        "business.lastModifiedBy"
+      ],
+      "nodes": [
+        {
+          "code": "billing_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.billing.usage_correct"
+    },
+    {
+      "code": "billing_bill_finalization",
+      "name": "平台账单定稿",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "PLATFORM",
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-BILL-002"
+      ],
+      "candidateExclusions": [
+        "business.generatedBy",
+        "business.requestedBy"
+      ],
+      "nodes": [
+        {
+          "code": "billing_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.billing.bill_finalize"
+    },
+    {
+      "code": "billing_manual_payment",
+      "name": "平台人工收款确认",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "PLATFORM",
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "secondConfirmation": true,
+      "sodPolicies": [
+        "SOD-BILL-002"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy",
+        "business.recordedBy"
+      ],
+      "nodes": [
+        {
+          "code": "billing_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.billing.payment_execute"
+    },
+    {
+      "code": "billing_refund",
+      "name": "平台退款批准与执行",
+      "audiences": [
+        "PROVIDER",
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "secondConfirmation": true,
+      "sodPolicies": [
+        "SOD-BILL-003"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy",
+        "business.refundExecutor"
+      ],
+      "nodes": [
+        {
+          "code": "billing_refund_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "approvalPermission": "platform.billing.refund_approve",
+      "executorPermission": "platform.billing.refund_execute"
+    },
+    {
+      "code": "billing_invoice_issue",
+      "name": "平台发票资格审核与初次开具",
+      "audiences": [
+        "PROVIDER",
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-BILL-003"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy",
+        "business.invoiceIssuer"
+      ],
+      "nodes": [
+        {
+          "code": "billing_invoice_eligibility",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.billing.invoice_issue"
+    },
+    {
+      "code": "billing_invoice_correction",
+      "name": "平台发票更正红冲",
+      "audiences": [
+        "PROVIDER",
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-BILL-003"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy",
+        "business.invoiceIssuer"
+      ],
+      "nodes": [
+        {
+          "code": "billing_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.billing.invoice_correct"
+    },
+    {
+      "code": "billing_dispute_resolution",
+      "name": "平台账单争议决定与关闭",
+      "audiences": [
+        "PROVIDER",
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-BILL-003"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy",
+        "business.investigatedBy"
+      ],
+      "nodes": [
+        {
+          "code": "billing_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.billing.dispute_resolve"
+    },
+    {
+      "code": "billing_delinquency_exception",
+      "name": "欠费例外与恢复",
+      "audiences": [
+        "PLATFORM"
+      ],
+      "businessScopes": [
+        "PLATFORM",
+        "ORGANIZATION",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-BILL-002"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy"
+      ],
+      "nodes": [
+        {
+          "code": "billing_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "platform_billing_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ],
+      "executorPermission": "platform.billing.delinquency_execute"
+    },
+    {
+      "code": "connector_authorization_change",
+      "name": "Organization连接器授权创建变更撤销",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "businessScopes": [
+        "ORGANIZATION",
+        "LEGAL_ENTITY",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-CONN-001"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy"
+      ],
+      "nodes": [
+        {
+          "code": "authorization_owner_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "connector_authorization_owner_approver",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ]
+    },
+    {
+      "code": "connector_workspace_grant_change",
+      "name": "Workspace连接器grant创建变更撤销",
+      "audiences": [
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "businessScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "sodPolicies": [
+        "SOD-CONN-001"
+      ],
+      "candidateExclusions": [
+        "business.requestedBy"
+      ],
+      "nodes": [
+        {
+          "code": "authorization_owner_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "connector_authorization_owner_approver",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "grantee_manager_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "connector_grantee_manager",
+          "mode": "ANY",
+          "quorum": 1
+        }
+      ]
+    },
+    {
+      "code": "sensitive_export",
+      "name": "敏感导出",
+      "audiences": [
+        "PLATFORM",
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "businessScopes": [
+        "PLATFORM",
+        "ORGANIZATION",
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "watermarkRequired": true,
+      "sodPolicies": [
+        "SOD-EXPORT-001"
+      ],
+      "nodes": [
+        {
+          "code": "data_owner_review",
+          "selectorType": "RESOLVER",
+          "selectorRef": "data_owner",
+          "mode": "SINGLE",
+          "quorum": 1
+        }
+      ]
+    },
+    {
+      "code": "support_access",
+      "name": "平台支持访问",
+      "audiences": [
+        "PLATFORM",
+        "PROVIDER",
+        "ENTERPRISE"
+      ],
+      "businessScopes": [
+        "WORKSPACE",
+        "LEGAL_ENTITY",
+        "BOOK",
+        "OBJECT"
+      ],
+      "contentHashRequired": true,
+      "defaultReadOnly": true,
+      "timeLimited": true,
+      "sodPolicies": [
+        "SOD-SUPPORT-001"
+      ],
+      "nodes": [
+        {
+          "code": "provider_owner_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "provider_authorized_manager",
+          "participantRole": "PRIMARY_PROVIDER",
+          "mode": "ANY",
+          "quorum": 1
+        },
+        {
+          "code": "enterprise_owner_approval",
+          "selectorType": "RESOLVER",
+          "selectorRef": "enterprise_authorized_representative",
+          "participantRole": "PRIMARY_CLIENT",
+          "mode": "POLICY",
+          "condition": "support.includesEnterpriseOwnedData=true"
+        }
+      ]
+    }
+  ],
+  "grantRules": [
+    {
+      "code": "GRANT-001",
+      "rule": "role_assignment必须使用PLATFORM/ORGANIZATION/WORKSPACE/LEGAL_ENTITY/BOOK/OBJECT之一，并由类型化resolver验证，禁止按枚举大小比较。"
+    },
+    {
+      "code": "GRANT-002",
+      "rule": "Organization级角色不能绕过ACTIVE workspace_membership；Workspace级角色不能覆盖未纳入workspace_subject的LegalEntity。"
+    },
+    {
+      "code": "GRANT-003",
+      "rule": "BOOK授权不能扩展到同LegalEntity其他账套；OBJECT授权只能覆盖精确对象。"
+    },
+    {
+      "code": "GRANT-004",
+      "rule": "PLATFORM角色不得写入Organization或Workspace role_assignment；平台支持访问只使用获批support_access_grant。"
+    },
+    {
+      "code": "GRANT-005",
+      "rule": "权限通配符必须按冻结catalog展开；未知权限、字段、关系、scope、风险或状态失败关闭，DENY优先。"
+    },
+    {
+      "code": "GRANT-006",
+      "rule": "workspace_participant和workspace_membership本身不授予业务权限；仍需有效role_assignment、对象关系、字段和状态校验。"
+    },
+    {
+      "code": "GRANT-007",
+      "rule": "PARTNER生产权限默认失败关闭，直至参与责任、Audience、数据范围和审批专项正式冻结。"
+    },
+    {
+      "code": "GRANT-008",
+      "rule": "审批任务处理权由对象级派生grant产生，不允许持久化全局approver角色。"
+    },
+    {
+      "code": "GRANT-009",
+      "rule": "Workspace激活与subject必须由PRIMARY_CLIENT的ACTIVE CONTROL或获批REPRESENTATION owner mapping证明owner/control；PRIMARY_PROVIDER以覆盖Workspace、主体、范围、期限的已签生效合同或ACTIVE SERVICE_AUTHORIZATION二选一并冻结id/version/hash，均不得替代owner claim；受监管动作仍另验专用authorization。"
+    },
+    {
+      "code": "GRANT-010",
+      "rule": "API-ORG-002提交只用organization.profile.manage；只有platform.organization.verification_review可review/approve/return/reject且提交人排除。Organization必须由获准核验case从VERIFYING原子激活，capability命令不得隐式激活。"
+    },
+    {
+      "code": "GRANT-011",
+      "rule": "API-ORG-003由Organization申请、PLATFORM以platform.organization.capability_approve决定approve/suspend/resume/revoke；每次冻结版本、证据、有效期、影响、hash与审批，申请人不得决定。"
+    },
+    {
+      "code": "GRANT-012",
+      "rule": "API-ORG-008紧急暂停只可即时收窄并由不同人员限时补审；恢复先审批并重验capability、成员、subscription、安全与Workspace影响，且不得复活LEFT/REVOKED/TERMINATED/EXPIRED关系。"
+    },
+    {
+      "code": "GRANT-013",
+      "rule": "Organization member或Workspace membership进入SUSPENDED/LEFT时即时撤销相应session/context、活动role_assignment与派生grant；LEFT不复活，重加入创建带前序引用的后继行，命令幂等。"
+    },
+    {
+      "code": "GRANT-014",
+      "rule": "ACTIVE PRIMARY_PROVIDER/PRIMARY_CLIENT不得单独LEFT，须先关闭旧Workspace或完成获批successor/handover并收口；PARTNER才可按影响评估单独LEFT，participant失效级联收窄membership。"
+    }
+  ]
+}
