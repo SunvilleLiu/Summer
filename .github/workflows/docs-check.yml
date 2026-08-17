@@ -1,11 +1,23 @@
-name: 文档基线机检
+name: 基线机检
 
 on:
   push:
     branches: [main]
-    paths: ['docs/**', 'tools/check_docs.py', '.github/workflows/docs-check.yml']
+    paths:
+      - 'docs/**'
+      - 'tools/**'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - 'PROGRESS.md'
+      - '.github/workflows/docs-check.yml'
   pull_request:
-    paths: ['docs/**', 'tools/check_docs.py', '.github/workflows/docs-check.yml']
+    paths:
+      - 'docs/**'
+      - 'tools/**'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - 'PROGRESS.md'
+      - '.github/workflows/docs-check.yml'
   workflow_dispatch:
 
 jobs:
@@ -18,8 +30,14 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 运行机检
-        run: python3 tools/check_docs.py | tee check.log
+      # 两项检查对象不同，分开运行以便失败时一眼看出是哪一类回归：
+      # check_docs 校验 docs/ 六卷，check_agents 校验 AI 作业规范与进度文件。
+      - name: 文档基线机检
+        run: python3 tools/check_docs.py | tee docs-check.log
+
+      - name: 作业规范机检
+        if: always()
+        run: python3 tools/check_agents.py | tee agents-check.log
 
       - name: 写入作业摘要
         if: always()
@@ -28,6 +46,12 @@ jobs:
             echo '## 文档基线机检'
             echo
             echo '```'
-            cat check.log
+            cat docs-check.log 2>/dev/null || echo '未执行'
+            echo '```'
+            echo
+            echo '## 作业规范机检'
+            echo
+            echo '```'
+            cat agents-check.log 2>/dev/null || echo '未执行'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
