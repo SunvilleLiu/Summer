@@ -2930,6 +2930,23 @@
   ],
   "sodPolicies": [
     {
+      "code": "SOD-CONFLICT-001",
+      "name": "通用职责冲突守卫",
+      "minimumDistinctPeople": 2,
+      "conflicts": [
+        "requester",
+        "approver",
+        "executor",
+        "preparer",
+        "reviewer",
+        "submitter",
+        "decider"
+      ],
+      "scope": "ALL_BUSINESS_OBJECTS",
+      "appliesWhenNoSpecificPolicyMatches": true,
+      "onFailure": "BLOCK"
+    },
+    {
       "code": "SOD-ROLE-001",
       "name": "禁止高风险自授权",
       "minimumDistinctPeople": 2,
