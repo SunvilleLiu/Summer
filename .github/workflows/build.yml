@@ -1,0 +1,125 @@
+name: 构建与测试
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'db/**'
+      - '*.slnx'
+      - 'Directory.*.props'
+      - '.github/workflows/build.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'db/**'
+      - '*.slnx'
+      - 'Directory.*.props'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    # 集成测试跑真实 PostgreSQL：本纵切一半的不变量写在 DDL 里
+    # （受众作用域检查、unique(family_id, generation)、审计表的只追加规则），
+    # 用内存替身跑等于不测。
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: summer
+          POSTGRES_PASSWORD: summer_ci
+          POSTGRES_DB: summer_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SUMMER_DB_TEST: 'Host=127.0.0.1;Port=5432;Database=summer_test;Username=summer;Password=summer_ci'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 还原依赖
+        run: dotnet restore Summer.slnx
+
+      # TreatWarningsAsErrors 已在 Directory.Build.props 打开，
+      # 因此这一步同时覆盖 03 §4.15 要求的「格式/静态检查」与「编译」。
+      - name: 编译（警告即错误）
+        run: dotnet build Summer.slnx --no-restore --configuration Release
+
+      - name: 格式检查
+        run: dotnet format Summer.slnx --verify-no-changes --no-restore
+
+      - name: 单元测试
+        run: >-
+          dotnet test tests/Summer.Tests.Unit/Summer.Tests.Unit.csproj
+          --no-build --configuration Release --logger 'trx;LogFileName=unit.trx'
+
+      # 集成测试内含 DDL 约束、状态迁移、并发冲突与审计链的验证，
+      # 对应 03 §4.15 的「DDL 约束」「状态迁移」两项最低要求。
+      - name: 集成测试（含 DDL 约束与状态机）
+        run: >-
+          dotnet test tests/Summer.Tests.Integration/Summer.Tests.Integration.csproj
+          --no-build --configuration Release --logger 'trx;LogFileName=integration.trx'
+
+      # 迁移必须能在空库上从零跑通：只测「已迁移过的库」会漏掉脚本顺序问题。
+      - name: 迁移可重放性
+        run: |
+          export PGPASSWORD=summer_ci
+          psql -h 127.0.0.1 -U summer -d postgres -q -c 'drop database if exists summer_replay;'
+          psql -h 127.0.0.1 -U summer -d postgres -q -c 'create database summer_replay;'
+          for f in db/migrations/*.sql; do
+            echo "应用 $f"
+            psql -h 127.0.0.1 -U summer -d summer_replay -q -v ON_ERROR_STOP=1 -f "$f"
+          done
+
+      - name: 上传测试结果
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
+          if-no-files-found: warn
+
+  # 依赖安全检查是 03 §4.15 的最低要求之一。
+  # 单列一个 job：它的失败原因（上游漏洞公告）与代码回归无关，混在一起会误导排查。
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 还原依赖
+        run: dotnet restore Summer.slnx
+
+      - name: 已知漏洞扫描
+        run: |
+          dotnet list Summer.slnx package --vulnerable --include-transitive 2>&1 | tee audit.log
+          if grep -q 'has the following vulnerable packages' audit.log; then
+            echo '::error::检出存在已知漏洞的依赖'
+            exit 1
+          fi
+
+      - name: 过期依赖报告
+        if: always()
+        run: dotnet list Summer.slnx package --outdated 2>&1 | tee outdated.log || true

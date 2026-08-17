@@ -1,0 +1,19 @@
+<Project>
+
+  <!--
+    集中管理包版本。新增任何条目等于新增外部依赖，按 AGENTS.md §7 需先上报。
+    当前依赖来自已冻结技术基线 docs/04-系统设计.md §4：PostgreSQL 需要 Npgsql 驱动。
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Npgsql" Version="9.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+</Project>

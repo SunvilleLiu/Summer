@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../Summer.BuildingBlocks.Domain/Summer.BuildingBlocks.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

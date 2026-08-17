@@ -1,0 +1,16 @@
+# .NET 构建产物
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+*.user
+
+# 工具与编辑器
+.vs/
+.vscode/
+.idea/
+
+# 本地环境
+*.env
+.env.local

@@ -1,0 +1,37 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Apis/">
+    <Project Path="src/Apis/Summer.Callback.Api/Summer.Callback.Api.csproj" />
+    <Project Path="src/Apis/Summer.Enterprise.Api/Summer.Enterprise.Api.csproj" />
+    <Project Path="src/Apis/Summer.Platform.Api/Summer.Platform.Api.csproj" />
+    <Project Path="src/Apis/Summer.Platform.Worker/Summer.Platform.Worker.csproj" />
+    <Project Path="src/Apis/Summer.Provider.Api/Summer.Provider.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/Summer.BuildingBlocks.Application/Summer.BuildingBlocks.Application.csproj" />
+    <Project Path="src/BuildingBlocks/Summer.BuildingBlocks.Domain/Summer.BuildingBlocks.Domain.csproj" />
+    <Project Path="src/BuildingBlocks/Summer.BuildingBlocks.Infrastructure/Summer.BuildingBlocks.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/Summer.Modules.Accounting/Summer.Modules.Accounting.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Authorization/Summer.Modules.Authorization.csproj" />
+    <Project Path="src/Modules/Summer.Modules.CommercialBilling/Summer.Modules.CommercialBilling.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Contract/Summer.Modules.Contract.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Customer/Summer.Modules.Customer.csproj" />
+    <Project Path="src/Modules/Summer.Modules.EnterpriseCollaboration/Summer.Modules.EnterpriseCollaboration.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Identity/Summer.Modules.Identity.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Integration/Summer.Modules.Integration.csproj" />
+    <Project Path="src/Modules/Summer.Modules.InternalManagement/Summer.Modules.InternalManagement.csproj" />
+    <Project Path="src/Modules/Summer.Modules.OperatingFinance/Summer.Modules.OperatingFinance.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Organization/Summer.Modules.Organization.csproj" />
+    <Project Path="src/Modules/Summer.Modules.PublicCapabilities/Summer.Modules.PublicCapabilities.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Reporting/Summer.Modules.Reporting.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Service/Summer.Modules.Service.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Tax/Summer.Modules.Tax.csproj" />
+    <Project Path="src/Modules/Summer.Modules.Workspace/Summer.Modules.Workspace.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Summer.Tests.Integration/Summer.Tests.Integration.csproj" />
+    <Project Path="tests/Summer.Tests.Unit/Summer.Tests.Unit.csproj" />
+  </Folder>
+</Solution>

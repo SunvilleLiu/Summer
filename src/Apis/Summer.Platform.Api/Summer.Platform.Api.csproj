@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="../../BuildingBlocks/Summer.BuildingBlocks.Infrastructure/Summer.BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="../../Modules/Summer.Modules.Identity/Summer.Modules.Identity.csproj" />
+    <ProjectReference Include="../../Modules/Summer.Modules.PublicCapabilities/Summer.Modules.PublicCapabilities.csproj" />
+  </ItemGroup>
+
+</Project>

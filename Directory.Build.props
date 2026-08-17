@@ -1,0 +1,20 @@
+<Project>
+
+  <!-- 技术基线 .NET 10 见 docs/04-系统设计.md §4。此处只固化编译期约定，不承载业务规则。 -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- 警告即错误：设计文档对约束与不变量要求严格，编译期能挡的不留到运行期 -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CA1848;CA2007</NoWarn>
+  </PropertyGroup>
+
+</Project>

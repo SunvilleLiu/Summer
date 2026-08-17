@@ -1,0 +1,16 @@
+<Project>
+
+  <!-- 先继承仓库根的编译约定，再按测试项目的实际需要放宽 -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <!--
+      CA1707：测试方法名用下划线分隔「场景类别_被测行为」，
+      这层分组直接对应 docs/04-系统设计.md §3.15 要求的七类场景，改名会丢失该对应关系。
+      CA1711：xUnit 的 CollectionDefinition 类型按惯例以 Collection 结尾。
+      两者都只影响测试项目的命名，不影响产品代码的分析级别。
+    -->
+    <NoWarn>$(NoWarn);CA1707;CA1711</NoWarn>
+  </PropertyGroup>
+
+</Project>
